@@ -38,7 +38,7 @@ stages:
         tags: |
           $(tag)
 - stage: Deploy
-  displayName: Deploy Job
+  displayName: Deploy Job attempt
   jobs:
   - job: Deploy
     displayName: Deploy
