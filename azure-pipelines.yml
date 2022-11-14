@@ -41,6 +41,7 @@ stages:
   displayName: Deploy
   jobs:
   - job: Deploy
+    displayName: Deploy
     steps:
     - task: AzureRmWebAppDeployment@3
       inputs:
