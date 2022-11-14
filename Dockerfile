@@ -4,7 +4,7 @@ FROM node as build
 WORKDIR /react-app
 
 
-COPY package*.json .
+COPY package*.json ./
 
 
 RUN yarn install
