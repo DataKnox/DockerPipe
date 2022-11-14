@@ -49,7 +49,7 @@ stages:
         appType: 'applinux'
         WebAppName: 'dockercicdknox'
         DockerNamespace: '$(containerRegistry)'
-        DockerRepository: 'DataKnox'
+        DockerRepository: '$(imageRepository)'
         DockerImageTag: '$(Build.BuildId)'
         WebAppUri: webAppUrl
         TakeAppOfflineFlag: true
