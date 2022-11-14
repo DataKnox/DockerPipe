@@ -37,3 +37,20 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+- stage: Deploy
+  displayName: Deploy
+  jobs:
+  - job: Deploy
+    steps:
+    - task: AzureRmWebAppDeployment@3
+      inputs:
+        azureSubscription: 'Pay-as-you-go(444d5dc8-f2d8-4aa0-8b7c-20457469c20c)'
+        appType: 'applinux'
+        WebAppName: 'dockercicdknox'
+        DockerNamespace: '$(containerRegistry)'
+        DockerRepository: 'DataKnox'
+        DockerImageTag: '$(Build.BuildId)'
+        WebAppUri: webAppUrl
+        TakeAppOfflineFlag: true
+        UseWebDeploy: true
+        RenameFilesFlag: true
