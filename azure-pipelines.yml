@@ -11,7 +11,7 @@ resources:
 variables:
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'a0c8e54b-c4c7-4a62-9520-d27e62db9332'
-  imageRepository: 'DataKnox'
+  imageRepository: 'dataknox'
   containerRegistry: 'dockeracrknox.azurecr.io'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
