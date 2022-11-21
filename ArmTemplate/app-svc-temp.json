@@ -1,0 +1,129 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "appName": {
+            "type": "String"
+        },
+        "acrName": {
+            "type": "String"
+        },
+        "startupScript": {
+            "defaultValue": "",
+            "type": "String"
+        },
+        "appSvcPlanName": {
+            "type": "String"
+        },
+        "acrLocation": {
+            "type": "String"
+        },
+        "acrSku": {
+            "defaultValue": "Standard",
+            "type": "String"
+        },
+        "appSku": {
+            "defaultValue": "Standard",
+            "type": "String"
+        },
+        "appInsightsLocation": {
+            "type": "String"
+        },
+        "containerName": {
+            "type": "String"
+        }
+    },
+    "functions": [],
+    "variables": {},
+    "resources": [
+        {
+            "name": "[parameters('appName')]",
+            "type": "Microsoft.Web/sites",
+            "apiVersion": "2020-12-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "[concat('hidden-related:', resourceGroup().id, '/providers/Microsoft.Web/serverfarms/',parameters('appSvcPlanName'))]": "Resource",
+                "displayName": "[parameters('appName')]"
+            },
+            "dependsOn": [
+                "[concat('Microsoft.Web/serverfarms/', parameters('appSvcPlanName'))]",
+                "[resourceId('microsoft.insights/components/', parameters('appName'))]"
+            ],
+            "properties": {
+                "name": "[parameters('appName')]",
+                "hostingEnvironment": "",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlan1')]",
+                "siteConfig": {
+                    "appSettings": [
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_URL",
+                            "value": "[concat('https://', reference(concat('Microsoft.ContainerRegistry/registries/', parameters('acrName'))).loginServer)]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_USERNAME",
+                            "value": "[listCredentials(concat('Microsoft.ContainerRegistry/registries/', parameters('acrName')), '2017-10-01').username]"
+                        },
+                        {
+                            "name": "DOCKER_REGISTRY_SERVER_PASSWORD",
+                            "value": "[listCredentials(concat('Microsoft.ContainerRegistry/registries/', parameters('acrName')), '2017-10-01').passwords[0].value]"
+                        },
+                        {
+                            "name": "WEBSITES_ENABLE_APP_SERVICE_STORAGE",
+                            "value": "false"
+                        },
+                        {
+                            "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                            "value": "[reference(resourceId('microsoft.insights/components/', parameters('appName')), '2015-05-01').InstrumentationKey]"
+                        }
+                    ],
+                    "appCommandLine": "[parameters('startupScript')]",
+                    "linuxFxVersion": "[concat('DOCKER|', reference(concat('Microsoft.ContainerRegistry/registries/', parameters('acrName'))).loginServer, '/', parameters('containerName'))]"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerRegistry/registries",
+            "sku": {
+                "name": "[parameters('acrSku')]"
+            },
+            "name": "[parameters('acrName')]",
+            "apiVersion": "2017-10-01",
+            "location": "[parameters('acrLocation')]",
+            "properties": {
+                "adminUserEnabled": true
+            }
+        },
+        {
+            "type": "Microsoft.Web/serverfarms",
+            "sku": {
+                "Tier": "[first(skip(split(parameters('appSku'), ' '), 1))]",
+                "Name": "[first(split(parameters('appSku'), ' '))]"
+            },
+            "kind": "linux",
+            "name": "[parameters('appSvcPlanName')]",
+            "apiVersion": "2016-09-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "name": "[parameters('appSvcPlanName')]",
+                "workerSizeId": "0",
+                "reserved": true,
+                "numberOfWorkers": "1",
+                "hostingEnvironment": ""
+            }
+        },
+        {
+            "type": "Microsoft.Insights/components",
+            "name": "[parameters('appName')]",
+            "apiVersion": "2014-04-01",
+            "location": "[parameters('appInsightsLocation')]",
+            "tags": {
+                "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.Web/sites/', parameters('appName'))]": "Resource"
+            },
+            "properties": {
+                "applicationId": "[parameters('appName')]",
+                "Request_Source": "AzureTfsExtensionAzureProject"
+            }
+        }
+    ],
+    "outputs": {}
+}

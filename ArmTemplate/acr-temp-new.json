@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "acrName": {
+            "type": "string"
+        },
+        "acrSku": {
+            "type": "string",
+            "defaultValue": "Standard",
+            "allowedValues": [
+                "Classic",
+                "Basic",
+                "Standard",
+                "Premium"
+            ]
+        },
+        "enableAdmin": {
+            "type": "bool",
+            "defaultValue": true
+        }
+    },
+    "functions": [],
+    "variables": {
+        "uniqueAcrName": "[concat(parameters('acrName'))]"
+    },
+    "resources": [
+        {
+            "name": "[variables('uniqueAcrName')]",
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2019-05-01",
+            "location": "[resourceGroup().location]",
+            "sku": {
+                "name": "[parameters('acrSku')]"
+            },
+            "properties": {
+                "adminUserEnabled": "[parameters('enableAdmin')]"
+            }
+        }
+    ],
+    "outputs": {
+        "acrPolicies": {
+            "type": "object",
+            "value": "[reference(variables('uniqueAcrName')).policies]"
+        },
+        "acrEndpoint": {
+            "type": "string",
+            "value": "[reference(variables('uniqueAcrName')).loginServer]"
+        }
+    }
+}
