@@ -20,8 +20,6 @@ variables:
 resources:
 - repo: self
 
-
-
 stages:
 - stage: Build
   displayName: Build and push stage
@@ -38,7 +36,7 @@ stages:
         resourceGroupName: '$(rgName)'
         location: $(location)
         csmFile: '$(System.DefaultWorkingDirectory)/**/acr-temp-new.json'
-        overrideParameters: '-acrName "$(acrName)" -acrSku standard'
+        overrideParameters: '-acrName "$(acrName)" -acrSku Standard'
     - task: Docker@1
       displayName: 'Build container image'
       inputs:
