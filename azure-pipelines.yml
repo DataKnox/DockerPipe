@@ -16,6 +16,7 @@ variables:
   vmImageName: 'ubuntu-latest'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
+  appSvcPlanName: 'knoxdocksvcplan'
 
 resources:
 - repo: self
@@ -68,7 +69,7 @@ stages:
         resourceGroupName: '$(rgName)'
         location: '$(location)'
         csmFile: '$(Pipeline.Workspace)/**/app-svc-temp.json'
-        overrideParameters: '-appName $(appName) -appSvcPlanName $(appName) -appInsightsLocation "$(location)" -appSku "S1 Standard" -acrName $(acrName) -acrLocation "$(location)" -acrSku standard -containerName $(containerName):$(Build.BuildId)'
+        overrideParameters: '-appName $(appName) -appSvcPlanName $(appSvcPlanName) -appInsightsLocation "$(location)" -appSku "S1 Standard" -acrName $(acrName) -acrLocation "$(location)" -acrSku standard -containerName $(containerName):$(Build.BuildId)'
     - task: AzureRmWebAppDeployment@3
       inputs:
         azureSubscription: 'azureSrvcConn'

@@ -52,7 +52,7 @@
             "properties": {
                 "name": "[parameters('appName')]",
                 "hostingEnvironment": "",
-                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', 'appServicePlan1')]",
+                "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', parameters('appSvcPlanName'))]",
                 "siteConfig": {
                     "appSettings": [
                         {
