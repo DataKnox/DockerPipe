@@ -8,7 +8,7 @@ trigger:
 variables:
   buildConfiguration: 'Release'
   location: 'eastus'
-  acrHostName: 'knoxdocker001.azurecr.io'
+  acrHostName: 'knoxdocker001acr.azurecr.io'
   acrName: 'knoxdocker001acr'
   rgName: 'knoxdocker001-rg'
   containerName: 'knoxdocker001'
@@ -39,22 +39,23 @@ stages:
         csmFile: '$(System.DefaultWorkingDirectory)/**/acr-temp-new.json'
         overrideParameters: '-acrName "$(acrName)" -acrSku Standard'
     - task: Docker@1
-      displayName: 'Build container image'
       inputs:
+        containerregistrytype: 'Azure Container Registry'
         azureSubscriptionEndpoint: 'azureSrvcConn'
         azureContainerRegistry: '$(acrHostName)'
-        imageName: '$(imageName):$(Build.BuildId)'
-        useDefaultContext: false
-        buildContext: '$(System.DefaultWorkingDirectory)/PublishedWebApp'
-  
-      # Push container image
+        command: 'Build an image'
+        dockerFile: '**/Dockerfile'
+        imageName: '$(containerName):$(Build.BuildId)'
+        
     - task: Docker@1
-      displayName: 'Push container image'
       inputs:
+        containerregistrytype: 'Azure Container Registry'
         azureSubscriptionEndpoint: 'azureSrvcConn'
         azureContainerRegistry: '$(acrHostName)'
         command: 'Push an image'
-        imageName: '$(imageName):$(Build.BuildId)'
+        imageName: '$(containerName):$(Build.BuildId)'
+
+      
 - stage: Deploy
   displayName: Deploy Job attempt
   jobs:
