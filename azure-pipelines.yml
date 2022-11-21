@@ -39,6 +39,7 @@ stages:
         csmFile: '$(System.DefaultWorkingDirectory)/**/acr-temp-new.json'
         overrideParameters: '-acrName "$(acrName)" -acrSku Standard'
     - task: Docker@1
+      displayName: 'Build task'
       inputs:
         containerregistrytype: 'Azure Container Registry'
         azureSubscriptionEndpoint: 'azureSrvcConn'
@@ -48,6 +49,7 @@ stages:
         imageName: '$(containerName):$(Build.BuildId)'
         
     - task: Docker@1
+      displayName: 'publish task'
       inputs:
         containerregistrytype: 'Azure Container Registry'
         azureSubscriptionEndpoint: 'azureSrvcConn'
@@ -72,6 +74,7 @@ stages:
         csmFile: '$(Pipeline.Workspace)/**/app-svc-temp.json'
         overrideParameters: '-appName $(appName) -appSvcPlanName $(appSvcPlanName) -appInsightsLocation "$(location)" -appSku "S1 Standard" -acrName $(acrName) -acrLocation "$(location)" -acrSku standard -containerName $(containerName):$(Build.BuildId)'
     - task: AzureRmWebAppDeployment@3
+      displayName: 'App Svc Deploy'
       inputs:
         azureSubscription: 'azureSrvcConn'
         appType: 'applinux'
