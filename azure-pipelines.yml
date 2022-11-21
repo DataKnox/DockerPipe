@@ -5,19 +5,22 @@
 trigger:
 - main
 
-resources:
-- repo: self
-
 variables:
-  # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '520-d27e62db9332'
-  imageRepository: 'dataknox'
-  containerRegistry: 'dockeracrknox.azurecr.io'
+  buildConfiguration: 'Release'
+  location: 'East US'
+  acrHostName: 'knoxdocker001.azurecr.io'
+  acrName: 'knoxdocker001acr'
+  rgName: 'knoxdocker001-rg'
+  containerName: 'knoxdocker001'
+  appName: 'knoxdocker001'
+  vmImageName: 'ubuntu-latest'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
 
-  # Agent VM image name
-  vmImageName: 'ubuntu-latest'
+resources:
+- repo: self
+
+
 
 stages:
 - stage: Build
@@ -28,28 +31,53 @@ stages:
     pool:
       image: '$(vmImageName)'
     steps:
-    - task: Docker@2
-      displayName: Build and push an image to container registry
+    - task: AzureResourceGroupDeployment@2
+      displayName: 'Azure Deployment:Create Azure Container Registry'
       inputs:
-        command: buildAndPush
-        repository: $(imageRepository)
-        dockerfile: $(dockerfilePath)
-        containerRegistry: $(dockerRegistryServiceConnection)
-        tags: |
-          $(tag)
+        azureSubscription: 'azureSrvcConn'
+        resourceGroupName: '$(rgName)'
+        location: $(location)
+        csmFile: '$(System.DefaultWorkingDirectory)/**/acr-temp-new.json'
+        overrideParameters: '-registryName "$(acrName)" -registryLocation "$(location)" -registrySku standard'
+    - task: Docker@1
+      displayName: 'Build container image'
+      inputs:
+        azureSubscriptionEndpoint: 'azureSrvcConn'
+        azureContainerRegistry: '$(acrHostName)'
+        imageName: '$(imageName):$(Build.BuildId)'
+        useDefaultContext: false
+        buildContext: '$(System.DefaultWorkingDirectory)/PublishedWebApp'
+  
+      # Push container image
+    - task: Docker@1
+      displayName: 'Push container image'
+      inputs:
+        azureSubscriptionEndpoint: 'azureSrvcConn'
+        azureContainerRegistry: '$(acrHostName)'
+        command: 'Push an image'
+        imageName: '$(imageName):$(Build.BuildId)'
 - stage: Deploy
   displayName: Deploy Job attempt
   jobs:
   - job: Deploy
     displayName: Deploy
     steps:
+
+    - task: AzureResourceGroupDeployment@2
+      displayName: 'Azure Deployment:Create Azure App Service'
+      inputs:
+        azureSubscription: 'azureSrvcConn'
+        resourceGroupName: '$(rgName)'
+        location: '$(location)'
+        csmFile: '$(Pipeline.Workspace)/**/app-svc-temp.json'
+        overrideParameters: '-webAppName $(appName) -hostingPlanName $(appName) -appInsightsLocation "$(location)" -sku "S1 Standard" -registryName $(acrName) -registryLocation "$(location)" -registrySku standard -imageName $(containerName):$(Build.BuildId)'
     - task: AzureRmWebAppDeployment@3
       inputs:
-        azureSubscription: 'Pay-as-you-go'
+        azureSubscription: 'azureSrvcConn'
         appType: 'applinux'
-        WebAppName: 'dockercicdknox'
-        DockerNamespace: '$(containerRegistry)'
-        DockerRepository: '$(imageRepository)'
+        WebAppName: '$(appName)'
+        DockerNamespace: '$(acrHostName)'
+        DockerRepository: '$(containerName)'
         DockerImageTag: '$(Build.BuildId)'
         WebAppUri: webAppUrl
         TakeAppOfflineFlag: true
