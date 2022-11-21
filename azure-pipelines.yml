@@ -31,7 +31,7 @@ stages:
       image: '$(vmImageName)'
     steps:
     - task: AzureResourceGroupDeployment@2
-      displayName: 'Azure Deployment:Create Azure Container Registry'
+      displayName: 'Azure Container Registry Deployment'
       inputs:
         azureSubscription: 'azureSrvcConn'
         resourceGroupName: '$(rgName)'
@@ -64,7 +64,7 @@ stages:
     steps:
 
     - task: AzureResourceGroupDeployment@2
-      displayName: 'Azure Deployment:Create Azure App Service'
+      displayName: 'Azure App Service Deployment'
       inputs:
         azureSubscription: 'azureSrvcConn'
         resourceGroupName: '$(rgName)'
@@ -83,4 +83,3 @@ stages:
         TakeAppOfflineFlag: true
         UseWebDeploy: true
         RenameFilesFlag: true
-
